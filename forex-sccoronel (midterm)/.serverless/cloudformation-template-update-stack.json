@@ -1,0 +1,538 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "The AWS CloudFormation template for this Serverless application",
+  "Resources": {
+    "ServerlessDeploymentBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "AccelerateConfiguration": {
+          "AccelerationStatus": "Suspended"
+        }
+      }
+    },
+    "ActionsLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/forex-sccoronel1-dev-actions"
+      }
+    },
+    "EventsLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/forex-sccoronel1-dev-events"
+      }
+    },
+    "InstallLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/forex-sccoronel1-dev-install"
+      }
+    },
+    "IamRoleLambdaExecution": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": {
+              "Fn::Join": [
+                "-",
+                [
+                  "dev",
+                  "forex-sccoronel1",
+                  "lambda"
+                ]
+              ]
+            },
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/forex-sccoronel1-dev-actions:*"
+                    },
+                    {
+                      "Fn::Sub": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/forex-sccoronel1-dev-events:*"
+                    },
+                    {
+                      "Fn::Sub": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/forex-sccoronel1-dev-install:*"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/forex-sccoronel1-dev-actions:*:*"
+                    },
+                    {
+                      "Fn::Sub": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/forex-sccoronel1-dev-events:*:*"
+                    },
+                    {
+                      "Fn::Sub": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/forex-sccoronel1-dev-install:*:*"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:GetItem",
+                    "dynamodb:PutItem"
+                  ],
+                  "Resource": [
+                    "arn:aws:dynamodb:*:*:table/forex-sccoronel1-dev-teams"
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "lambda:invokeFunction"
+                  ],
+                  "Resource": [
+                    "arn:aws:lambda:*:*:function:forex-sccoronel1-dev-actions"
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "Path": "/",
+        "RoleName": {
+          "Fn::Join": [
+            "-",
+            [
+              "forex-sccoronel1",
+              "dev",
+              "ap-southeast-1",
+              "lambdaRole"
+            ]
+          ]
+        }
+      }
+    },
+    "ActionsLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/forex-sccoronel1/dev/1520039299351-2018-03-03T01:08:19.351Z/forex-sccoronel1.zip"
+        },
+        "FunctionName": "forex-sccoronel1-dev-actions",
+        "Handler": "actions.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        },
+        "Runtime": "nodejs6.10",
+        "Timeout": 6,
+        "Environment": {
+          "Variables": {
+            "CLIENT_ID": "305570257588.323898066771",
+            "CLIENT_SECRET": "5b3b8ffb052a723705dadb615c9fa75a",
+            "VERIFICATION_TOKEN": "jYh0kWoSnsjys2HzyAovgp9O",
+            "INSTALL_ERROR_URL": "http://forex-sccoronel1.s3-website-ap-southeast-1.amazonaws.com/#error",
+            "INSTALL_SUCCESS_URL": "http://forex-sccoronel1.s3-website-ap-southeast-1.amazonaws.com/#success",
+            "NAMESPACE": "forex-sccoronel1-dev",
+            "TEAMS_TABLE": "forex-sccoronel1-dev-teams"
+          }
+        }
+      },
+      "DependsOn": [
+        "ActionsLogGroup",
+        "IamRoleLambdaExecution"
+      ]
+    },
+    "ActionsLambdaVersionsS0LQ5f67lkxgx9SdZeZ5toQMtCytIgwyUmCgEHgEk": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "ActionsLambdaFunction"
+        },
+        "CodeSha256": "UV8rvOP4kA1j4f7eE9qZNR8w+sXxA2Rveletw0qlAA4="
+      }
+    },
+    "EventsLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/forex-sccoronel1/dev/1520039299351-2018-03-03T01:08:19.351Z/forex-sccoronel1.zip"
+        },
+        "FunctionName": "forex-sccoronel1-dev-events",
+        "Handler": "events.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        },
+        "Runtime": "nodejs6.10",
+        "Timeout": 6,
+        "Environment": {
+          "Variables": {
+            "CLIENT_ID": "305570257588.323898066771",
+            "CLIENT_SECRET": "5b3b8ffb052a723705dadb615c9fa75a",
+            "VERIFICATION_TOKEN": "jYh0kWoSnsjys2HzyAovgp9O",
+            "INSTALL_ERROR_URL": "http://forex-sccoronel1.s3-website-ap-southeast-1.amazonaws.com/#error",
+            "INSTALL_SUCCESS_URL": "http://forex-sccoronel1.s3-website-ap-southeast-1.amazonaws.com/#success",
+            "NAMESPACE": "forex-sccoronel1-dev",
+            "TEAMS_TABLE": "forex-sccoronel1-dev-teams"
+          }
+        }
+      },
+      "DependsOn": [
+        "EventsLogGroup",
+        "IamRoleLambdaExecution"
+      ]
+    },
+    "EventsLambdaVersionqofsB2zJMahzDSp2U9ngfcZaWKXik53lzZvoHCoo": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "EventsLambdaFunction"
+        },
+        "CodeSha256": "UV8rvOP4kA1j4f7eE9qZNR8w+sXxA2Rveletw0qlAA4="
+      }
+    },
+    "InstallLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/forex-sccoronel1/dev/1520039299351-2018-03-03T01:08:19.351Z/forex-sccoronel1.zip"
+        },
+        "FunctionName": "forex-sccoronel1-dev-install",
+        "Handler": "install.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        },
+        "Runtime": "nodejs6.10",
+        "Timeout": 6,
+        "Environment": {
+          "Variables": {
+            "CLIENT_ID": "305570257588.323898066771",
+            "CLIENT_SECRET": "5b3b8ffb052a723705dadb615c9fa75a",
+            "VERIFICATION_TOKEN": "jYh0kWoSnsjys2HzyAovgp9O",
+            "INSTALL_ERROR_URL": "http://forex-sccoronel1.s3-website-ap-southeast-1.amazonaws.com/#error",
+            "INSTALL_SUCCESS_URL": "http://forex-sccoronel1.s3-website-ap-southeast-1.amazonaws.com/#success",
+            "NAMESPACE": "forex-sccoronel1-dev",
+            "TEAMS_TABLE": "forex-sccoronel1-dev-teams"
+          }
+        }
+      },
+      "DependsOn": [
+        "InstallLogGroup",
+        "IamRoleLambdaExecution"
+      ]
+    },
+    "InstallLambdaVersionwuOAIusC1Colp1sBokpw1YbbxP5HVxUrTWFhLivBEYs": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "InstallLambdaFunction"
+        },
+        "CodeSha256": "UV8rvOP4kA1j4f7eE9qZNR8w+sXxA2Rveletw0qlAA4="
+      }
+    },
+    "ApiGatewayRestApi": {
+      "Type": "AWS::ApiGateway::RestApi",
+      "Properties": {
+        "Name": "dev-forex-sccoronel1",
+        "EndpointConfiguration": {
+          "Types": [
+            "EDGE"
+          ]
+        }
+      }
+    },
+    "ApiGatewayResourceEvents": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Fn::GetAtt": [
+            "ApiGatewayRestApi",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "events",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayResourceInstall": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Fn::GetAtt": [
+            "ApiGatewayRestApi",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "install",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodEventsPost": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "POST",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceEvents"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "ApiKeyRequired": false,
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "EventsLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      }
+    },
+    "ApiGatewayMethodInstallGet": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "GET",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceInstall"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "ApiKeyRequired": false,
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "InstallLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      }
+    },
+    "ApiGatewayDeployment1520039299367": {
+      "Type": "AWS::ApiGateway::Deployment",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "StageName": "dev"
+      },
+      "DependsOn": [
+        "ApiGatewayMethodEventsPost",
+        "ApiGatewayMethodInstallGet"
+      ]
+    },
+    "EventsLambdaPermissionApiGateway": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "EventsLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:aws:execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "/*/*"
+            ]
+          ]
+        }
+      }
+    },
+    "InstallLambdaPermissionApiGateway": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "InstallLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:aws:execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "/*/*"
+            ]
+          ]
+        }
+      }
+    },
+    "TeamsDynamoDbTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "TableName": "forex-sccoronel1-dev-teams",
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "team_id",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "team_id",
+            "KeyType": "HASH"
+          }
+        ],
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 5,
+          "WriteCapacityUnits": 5
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "ServerlessDeploymentBucketName": {
+      "Value": {
+        "Ref": "ServerlessDeploymentBucket"
+      }
+    },
+    "ActionsLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "ActionsLambdaVersionsS0LQ5f67lkxgx9SdZeZ5toQMtCytIgwyUmCgEHgEk"
+      }
+    },
+    "EventsLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "EventsLambdaVersionqofsB2zJMahzDSp2U9ngfcZaWKXik53lzZvoHCoo"
+      }
+    },
+    "InstallLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "InstallLambdaVersionwuOAIusC1Colp1sBokpw1YbbxP5HVxUrTWFhLivBEYs"
+      }
+    },
+    "ServiceEndpoint": {
+      "Description": "URL of the service endpoint",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://",
+            {
+              "Ref": "ApiGatewayRestApi"
+            },
+            ".execute-api.ap-southeast-1.amazonaws.com/dev"
+          ]
+        ]
+      }
+    }
+  }
+}
